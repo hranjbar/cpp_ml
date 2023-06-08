@@ -1,0 +1,11 @@
+# executables
+*.exe
+*.o
+*.out
+*.app
+
+# documents
+*.pdf
+
+# CMake
+*.cmake
