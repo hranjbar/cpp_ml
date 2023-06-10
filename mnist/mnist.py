@@ -3,12 +3,16 @@ import pandas as pd
 import random
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import os
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Flatten, Conv2D, Dense, MaxPooling2D
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.datasets import mnist
+
+# for TF to run on CPU
+tf.config.set_visible_devices([], 'GPU')
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
@@ -33,7 +37,8 @@ model.compile(
 )
 
 history = model.fit(x_train, y_train, epochs=5, batch_size=32)
-
+# save model 
+tf.saved_model.save(model, os.getcwd())
 image = random.choice(x_test)
 
 plt.imshow(image, cmap=plt.get_cmap('gray'))

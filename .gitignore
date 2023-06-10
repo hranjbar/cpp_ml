@@ -9,3 +9,11 @@
 
 # CMake
 *.cmake
+Makefile
+CMakeCache.txt
+
+# Python saved_model
+*.pb
+
+# images
+*.jpg
