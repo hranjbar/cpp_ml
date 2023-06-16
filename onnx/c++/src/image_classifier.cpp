@@ -107,8 +107,8 @@ ImageClassifier::ImageClassifier(const std::string& modelFilepath) {
   // 0 means the first input of the model
   // The example only has one input, so use 0 here
   // mInputName = mSession->GetInputName(0, allocator);
-  std::unique_ptr<char, Ort::detail::AllocatedFree> itemp = mSession->GetInputNameAllocated(0, allocator);
-  mInputName = itemp.get();
+  std::unique_ptr<char, Ort::detail::AllocatedFree> temp = mSession->GetInputNameAllocated(0, allocator);
+  mInputName = temp.get();
 #ifdef VERBOSE
   std::cout << "Input Name: " << std::string(mInputName) << std::endl;
 #endif
@@ -139,8 +139,8 @@ ImageClassifier::ImageClassifier(const std::string& modelFilepath) {
   // 0 means the first output of the model
   // The example only has one output, so use 0 here
   // mOutputName = mSession->GetOutputName(0, allocator);
-  std::unique_ptr<char, Ort::detail::AllocatedFree> otemp = mSession->GetOutputNameAllocated(0, allocator);
-  mOutputName = otemp.get();
+  temp = mSession->GetOutputNameAllocated(0, allocator);
+  mOutputName = temp.get();
 #ifdef VERBOSE
   std::cout << "Output Name: " << std::string(mOutputName) << std::endl;
 #endif

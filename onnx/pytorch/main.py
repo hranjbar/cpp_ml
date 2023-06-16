@@ -36,7 +36,7 @@ def imshow(img):
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.show()
 
-
+'''
 # get some random training images
 dataiter = iter(trainloader)
 images, labels = next(dataiter)
@@ -45,12 +45,12 @@ images, labels = next(dataiter)
 imshow(torchvision.utils.make_grid(images))
 # print labels
 print(' '.join(f'{classes[labels[j]]:5s}' for j in range(batch_size)))
-
+'''
 # 2. Define a Convolutional Neural Network
 import torch.nn as nn
 import torch.nn.functional as F
 
-
+'''
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
@@ -69,9 +69,10 @@ class Net(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
-
-
-net = Net()
+'''
+from model import ImageClassifier
+# net = Net()
+net = ImageClassifier()
 
 # 3. Define a Loss function and optimizer
 import torch.optim as optim
@@ -80,7 +81,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 # 4. Train the network
-for epoch in range(2):  # loop over the dataset multiple times
+for epoch in range(20):  # loop over the dataset multiple times
 
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
@@ -105,9 +106,9 @@ for epoch in range(2):  # loop over the dataset multiple times
 print('Finished Training')
 
 # save trained model 
-PATH = './cifar_net.pth'
+PATH = './models/cifar_net.pth'
 torch.save(net.state_dict(), PATH)
-
+'''
 # 5. Test the network on the test data
 dataiter = iter(testloader)
 images, labels = next(dataiter)
@@ -163,7 +164,7 @@ with torch.no_grad():
 for classname, correct_count in correct_pred.items():
     accuracy = 100 * float(correct_count) / total_pred[classname]
     print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
-    
+'''
 # Training on GPU
 '''
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')

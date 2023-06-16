@@ -14,8 +14,14 @@ CMakeCache.txt
 
 # Python saved_model
 *.pb
+*.pth
+*.onnx
 
 # images
 *.jpg
+*.jpeg
+*.png
 
-
+#directories
+build
+data
