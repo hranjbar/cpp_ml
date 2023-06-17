@@ -12,10 +12,11 @@
 Makefile
 CMakeCache.txt
 
-# Python saved_model
+# Python
 *.pb
 *.pth
 *.onnx
+__pycache__
 
 # images
 *.jpg
