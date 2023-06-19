@@ -3,6 +3,8 @@ import torchvision
 import torchvision.transforms as transforms
 
 print(f"Using Pytorch version {torch.__version__}")
+#device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+#print(device)
 
 # 1. Load and normalize CIFAR10
 transform = transforms.Compose(
@@ -19,23 +21,24 @@ classes = ('plane', 'car', 'bird', 'cat',
 
 # 2. train a CNN
 import torch.nn as nn
-import torch.nn.functional as F
 from model import ImageClassifier
 import torch.optim as optim
 
 # 2.1 declare network
 net = ImageClassifier()
+#net.to(device)
 
 # 2.2 define a Loss function and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 # 2.3 train
-for epoch in range(1):  # loop over the dataset multiple times
+for epoch in range(20):  # loop over the dataset multiple times
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
         inputs, labels = data
+        #inputs, labels = data[0].to(device), data[1].to(device)
 
         # zero the parameter gradients
         optimizer.zero_grad()
@@ -56,14 +59,3 @@ print('Finished Training')
 # 2.4 save trained model 
 PATH = './models/cifar_net.pth'
 torch.save(net.state_dict(), PATH)
-
-# Training on GPU
-'''
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
-# Assuming that we are on a CUDA machine, this should print a CUDA device:
-
-print(device)
-net.to(device)
-inputs, labels = data[0].to(device), data[1].to(device)
-'''

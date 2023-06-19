@@ -19,20 +19,7 @@ net = ImageClassifier()
 PATH = './models/cifar_net.pth'
 net.load_state_dict(torch.load(PATH))
 
-# 3. Test the network on the test data
-'''
-# 3.1 a small subset first
-dataiter = iter(testloader)
-images, labels = next(dataiter)
-imshow(torchvision.utils.make_grid(images))
-print('GroundTruth: ', ' '.join(f'{classes[labels[j]]:5s}' for j in range(4)))
-outputs = net(images)
-# The outputs are energies for the 10 classes. The higher the energy for a class, the more the network thinks that the image is of the particular class. So, let’s get the index of the highest energy:
-_, predicted = torch.max(outputs, 1)
-print('Predicted: ', ' '.join(f'{classes[predicted[j]]:5s}'
-                              for j in range(4)))
-'''
-# 3.2 Now on the whole test dataset.                             
+# 3. test model on test data
 correct = 0
 total = 0
 # since we're not training, we don't need to calculate the gradients for our outputs
