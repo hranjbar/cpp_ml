@@ -23,6 +23,9 @@ __pycache__
 *.jpeg
 *.png
 
+# meta data
+
 #directories
 build
 data
+.metadata
