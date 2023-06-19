@@ -42,6 +42,6 @@ int main(int argc, char **argv) {
 			correct++;
 		}
 	}
-	std::cout << "accuracy: " << (double)correct / imgs_labels.size() * 100 << " %\n";
+	std::cout << "accuracy: " << (double)correct / imgs_labels.size() * 100.0 << " %\n";
 	return 0;
 }
