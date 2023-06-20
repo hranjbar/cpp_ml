@@ -23,7 +23,7 @@ void mapImagesToClasses(std::filesystem::path & i_dir,
 
 int main(int argc, char **argv) {
 	// Create image classifier
-	std::filesystem::path model_path = "/home/anshu/horanj/python_C++_deployment/onnx/pytorch/models";
+	std::filesystem::path model_path = "/home/anshu/horanj/python_C++_deployment/onnx/cifar/pytorch/models";
 	std::string model_name = "image_classifier.onnx";
 	ImageClassifier ic(model_path / model_name);
 
