@@ -17,6 +17,8 @@ CMakeCache.txt
 *.pth
 *.onnx
 __pycache__
+variables
+assets
 
 # images
 *.jpg
