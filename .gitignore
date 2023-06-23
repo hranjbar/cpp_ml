@@ -15,6 +15,7 @@ CMakeCache.txt
 # Python
 *.pb
 *.pth
+*hdf5
 *.onnx
 __pycache__
 variables
