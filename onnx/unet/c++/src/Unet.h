@@ -7,6 +7,7 @@
 #include <iostream>
 #include <memory>
 #include <numeric>
+#include <limits>
 #include <opencv2/dnn/dnn.hpp>
 #include <opencv2/opencv.hpp>
 #include <string>
@@ -29,10 +30,10 @@ using sec = std::chrono::duration<double>;
  * @param v: input vector
  * @return the product
  */
-template <typename T>
-size_t vectorProduct(const std::vector<T>& v) {
-  return std::accumulate(v.begin(), v.end(), 1, std::multiplies<T>());
-}
+// template <typename T>
+// size_t vectorProduct(const std::vector<T>& v) {
+//   return std::accumulate(v.begin(), v.end(), 1, std::multiplies<T>());
+// }
 
 #ifdef VERBOSE
 /**
@@ -69,7 +70,7 @@ class Unet {
    * @param imageFilepath: path to the image
    * @return the index of the predicted class
    */
-  void Inference(const std::string& imageFilepath);
+  void Inference(const std::string& inputVolumePath, const std::string& outputVolumePath);
 
  private:
   // ORT Environment
@@ -86,12 +87,14 @@ class Unet {
   char* mOutputName;
   std::vector<int64_t> mOutputDims;
 
+  void NormalizeArray(std::vector<float> & inputArray);
+
   /**
    * @brief Create a tensor from an input image
    * @param img: the input image
    * @param inputTensorValues: the output tensor
    */
-  void CreateTensorFromImage(const cv::Mat& img, std::vector<float>& inputTensorValues);
+  void PopulateInputTensorValues(std::vector<float> & inputVolume, unsigned int sliceIndex, std::vector<float>& inputTensorValues);
 };
 
 #endif  // IMAGE_CLASSIFIER_H_

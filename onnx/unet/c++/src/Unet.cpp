@@ -89,7 +89,7 @@ Unet::Unet(const std::string& modelFilepath) {
       GraphOptimizationLevel::ORT_ENABLE_ALL);
   // Create session by loading the onnx model
   mSession = std::make_shared<Ort::Session>(*mEnv, modelFilepath.c_str(),
-                                            sessionOptions);
+    sessionOptions);
 
   /**************** Create allocator ******************/
   // Allocator is used to get model information
@@ -159,107 +159,179 @@ Unet::Unet(const std::string& modelFilepath) {
 #endif
 }
 
-// Perform inference for a given image
-void Unet::Inference(const std::string& imageFilepath) {
-/**************** Create allocator ******************/
-  // Allocator is used to get model information
-  Ort::AllocatorWithDefaultOptions allocator;
-  
-  // Load an input volume
-  cv::Mat imageGray = cv::imread(imageFilepath, cv::IMREAD_GRAYSCALE);
-  /*std::cout << "cv::Mat\n";
-  std::cout << "element size: " << imageGray.elemSize() << " B\n";
-  std::cout << "size of each element channel: " << imageGray.elemSize1() << " B\n";
-  std::cout << "rows: " << imageGray.rows << "\ncols: " << imageGray.cols << std::endl;*/
+void Unet::Inference(const std::string& inputVolumePath, const std::string& outputVolumePath)
+{
 
-  /**************** Preprocessing ******************/
-  // Create input tensor (including size and value) from the loaded input image
-#ifdef TIME_PROFILE
-  const auto before = clock_time::now();
-#endif
-  // Compute the product of all input dimension
-  size_t inputTensorSize = vectorProduct(mInputDims);
+  // read input volume from binary file
+  std::ifstream is(inputVolumePath, std::ios::in | std::ios::binary);
+  is.seekg(0, is.end);
+  const size_t filesize = is.tellg();
+  is.seekg(0, is.beg);
+  if (!is.is_open()) std::cout << "cant' open file " << inputVolumePath << std::endl;
+  std::vector<float> inputVolume(filesize / sizeof(float));
+  is.read(reinterpret_cast<char *>(inputVolume.data()), filesize);
+  is.close();
+
+  // allocate output volume 
+  std::vector<float> outputVolume(inputVolume.size());
+
+  // calculate size of volumes
+  int64_t nXY = mInputDims[2] * mInputDims[3];
+  const unsigned int numSlices = inputVolume.size() / nXY;
+
+  // create input/output tensor size
+  int64_t inputTensorSize = std::accumulate(mInputDims.begin(), mInputDims.end(), 1, std::multiplies<int64_t>());
   std::vector<float> inputTensorValues(inputTensorSize);
-  // Load the image into the inputTensorValues
-  CreateTensorFromImage(imageGray, inputTensorValues);
+  int64_t outputTensorSize = std::accumulate(mOutputDims.begin(), mOutputDims.end(), 1, std::multiplies<int64_t>());
+  std::vector<float> outputTensorValues(outputTensorSize);
 
-  // Assign memory for input tensor
-  // inputTensors will be used by the Session Run for inference
-  std::vector<Ort::Value> inputTensors;
-  Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(
-      OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault);
-  inputTensors.push_back(Ort::Value::CreateTensor<float>(
+  NormalizeArray(inputVolume);
+  // slc_ix = [1 , ... , n-1], processing 3 adjacent slices at a time, moving 1 slice each iteration
+  for (unsigned int slc_ix = 1; slc_ix < numSlices - 1; slc_ix++) {
+    // create allocator
+    Ort::AllocatorWithDefaultOptions allocator;
+
+    // prepare input tensor values
+    PopulateInputTensorValues(inputVolume, slc_ix, inputTensorValues);
+    Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator, 
+      OrtMemType::OrtMemTypeDefault);
+
+    // create input tensors
+    std::vector<Ort::Value> inputTensors;
+    inputTensors.push_back(Ort::Value::CreateTensor<float>(
       memoryInfo, inputTensorValues.data(), inputTensorSize, mInputDims.data(),
       mInputDims.size()));
 
-  // Create output tensor (including size and value)
-  size_t outputTensorSize = vectorProduct(mOutputDims);
-  std::vector<float> outputTensorValues(outputTensorSize);
-
-  // Assign memory for output tensors
-  // outputTensors will be used by the Session Run for inference
-  std::vector<Ort::Value> outputTensors;
-  outputTensors.push_back(Ort::Value::CreateTensor<float>(
+    // create output tensors
+    std::vector<Ort::Value> outputTensors;
+    outputTensors.push_back(Ort::Value::CreateTensor<float>(
       memoryInfo, outputTensorValues.data(), outputTensorSize,
       mOutputDims.data(), mOutputDims.size()));
 
-#ifdef TIME_PROFILE
-  const sec duration = clock_time::now() - before;
-  std::cout << "The preprocessing takes " << duration.count() << "s"
-            << std::endl;
-#endif
+    // inference: input tensor --> output tensor
+    std::unique_ptr<char, Ort::detail::AllocatedFree> itemp = mSession->GetInputNameAllocated(0, allocator);
+    std::vector<const char*> inputNames{itemp.get()};
+    std::unique_ptr<char, Ort::detail::AllocatedFree> otemp = mSession->GetOutputNameAllocated(0, allocator);
+    std::vector<const char*> outputNames{otemp.get()};
+    mSession->Run(Ort::RunOptions{nullptr}, inputNames.data(),
+      inputTensors.data(), 1, outputNames.data(), outputTensors.data(), 1);
 
-  /**************** Inference ******************/
-#ifdef TIME_PROFILE
-  const auto before1 = clock_time::now();
-#endif
+    // Get the inference result
+    float * outputTensorValuesPtr = outputTensors.front().GetTensorMutableData<float>();
+    for (float & val : outputTensorValues) {
+      val = *outputTensorValuesPtr;
+      outputTensorValuesPtr++;
+    }
+
+    // copy the middle slice of 3 slices in outputTensorValues to slice slc_ix of outputVolume
+    auto it = std::copy(outputTensorValues.begin() + nXY, outputTensorValues.begin() + (nXY + nXY), 
+      outputVolume.begin() + slc_ix * nXY);
+    if (it != outputVolume.begin() + (slc_ix + 1) * nXY) std::perror("copy failed!\n");
+
+    std::cout << "slice: " << slc_ix + 1 << std::endl;
+
+  } // slc_ix
+
+  // write output volume to binary file
+  std::ofstream os(outputVolumePath, std::ios::out | std::ios::binary);
+  if (!os.is_open()) std::cout << "can't open file " << outputVolumePath << " for writing!\n";
+  os.write(reinterpret_cast<char *>(outputVolume.data()), filesize);
+  os.close();
+
+  /**************** Preprocessing ******************/
+  // Create input tensor (including size and value) from the loaded input image
+// #ifdef TIME_PROFILE
+//   const auto before = clock_time::now();
+// #endif
+  // Compute the product of all input dimension
+  // size_t inputTensorSize = vectorProduct(mInputDims);
+  // std::vector<float> inputTensorValues(inputTensorSize);
+  // Load the image into the inputTensorValues
+  // CreateTensorFromImage(imageGray, inputTensorValues);
+
+  // Assign memory for input tensor
+  // inputTensors will be used by the Session Run for inference
+  // std::vector<Ort::Value> inputTensors;
+  // Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(
+  //     OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault);
+  // inputTensors.push_back(Ort::Value::CreateTensor<float>(
+  //     memoryInfo, inputTensorValues.data(), inputTensorSize, mInputDims.data(),
+  //     mInputDims.size()));
+
+  // Create output tensor (including size and value)
+  // size_t outputTensorSize = vectorProduct(mOutputDims);
+  // std::vector<float> outputTensorValues(outputTensorSize);
+
+  // Assign memory for output tensors
+  // outputTensors will be used by the Session Run for inference
+  // std::vector<Ort::Value> outputTensors;
+  // outputTensors.push_back(Ort::Value::CreateTensor<float>(
+  //     memoryInfo, outputTensorValues.data(), outputTensorSize,
+  //     mOutputDims.data(), mOutputDims.size()));
+
+// #ifdef TIME_PROFILE
+//   const sec duration = clock_time::now() - before;
+//   std::cout << "The preprocessing takes " << duration.count() << "s"
+//             << std::endl;
+// #endif
+
+//   /**************** Inference ******************/
+// #ifdef TIME_PROFILE
+//   const auto before1 = clock_time::now();
+// #endif
   // 1 means number of inputs and outputs
   // InputTensors and OutputTensors, and inputNames and
   // outputNames are used in Session Run
-  std::unique_ptr<char, Ort::detail::AllocatedFree> itemp = mSession->GetInputNameAllocated(0, allocator);
-  std::vector<const char*> inputNames{itemp.get()};
-  std::unique_ptr<char, Ort::detail::AllocatedFree> otemp = mSession->GetOutputNameAllocated(0, allocator);
-  std::vector<const char*> outputNames{otemp.get()};
-  mSession->Run(Ort::RunOptions{nullptr}, inputNames.data(),
-                inputTensors.data(), 1, outputNames.data(),
-                outputTensors.data(), 1);
+  // std::unique_ptr<char, Ort::detail::AllocatedFree> itemp = mSession->GetInputNameAllocated(0, allocator);
+  // std::vector<const char*> inputNames{itemp.get()};
+  // std::unique_ptr<char, Ort::detail::AllocatedFree> otemp = mSession->GetOutputNameAllocated(0, allocator);
+  // std::vector<const char*> outputNames{otemp.get()};
+  // mSession->Run(Ort::RunOptions{nullptr}, inputNames.data(),
+  //               inputTensors.data(), 1, outputNames.data(),
+  //               outputTensors.data(), 1);
 
-#ifdef TIME_PROFILE
-  const sec duration1 = clock_time::now() - before1;
-  std::cout << "The inference takes " << duration1.count() << "s" << std::endl;
-#endif
+// #ifdef TIME_PROFILE
+//   const sec duration1 = clock_time::now() - before1;
+//   std::cout << "The inference takes " << duration1.count() << "s" << std::endl;
+// #endif
 
   /**************** Postprocessing the output result ******************/
-#ifdef TIME_PROFILE
-  const auto before2 = clock_time::now();
-#endif
+// #ifdef TIME_PROFILE
+//   const auto before2 = clock_time::now();
+// #endif
   // Get the inference result
-  float* floatarr = outputTensors.front().GetTensorMutableData<float>();
+  // float* floatarr = outputTensors.front().GetTensorMutableData<float>();
   // Compute the index of the predicted class
   // 10 means number of classes in total
-  int cls_idx = std::max_element(floatarr, floatarr + 10) - floatarr;
+  // int cls_idx = std::max_element(floatarr, floatarr + 10) - floatarr;
 
-#ifdef TIME_PROFILE
-  const sec duration2 = clock_time::now() - before2;
-  std::cout << "The postprocessing takes " << duration2.count() << "s"
-            << std::endl;
-#endif
+// #ifdef TIME_PROFILE
+//   const sec duration2 = clock_time::now() - before2;
+//   std::cout << "The postprocessing takes " << duration2.count() << "s"
+//             << std::endl;
+// #endif
 
   // return cls_idx;
 }
 
-// Create a tensor from the input image
-void Unet::CreateTensorFromImage(
-    const cv::Mat& img, std::vector<float>& inputTensorValues) {
-  cv::Mat imageRGB, scaledImage, preprocessedImage;
+/* divide all elements by maximum*/
+void Unet::NormalizeArray(std::vector<float> & inputArray)
+{
+  float const maxValue = *std::max_element(inputArray.begin(), inputArray.end());
+  if (maxValue > std::numeric_limits<float>::epsilon()) {
+    std::transform(inputArray.begin(), inputArray.end(), inputArray.begin(),
+    [&maxValue](float & el){
+      return el / maxValue;
+    });
+  } else std::perror("could not normalize array, maximum value too small!\n");
+}
 
-  /******* Preprocessing *******/
-  // Scale image pixels from [0 255] to [-1, 1]
-  img.convertTo(scaledImage, CV_32F, 2.0f / 255.0f, -1.0f);
-  // Convert HWC to CHW
-  cv::dnn::blobFromImage(scaledImage, preprocessedImage);
-
-  // Assign the input image to the input tensor
-  inputTensorValues.assign(preprocessedImage.begin<float>(),
-                           preprocessedImage.end<float>());
+/* create input tensor values */
+void Unet::PopulateInputTensorValues(std::vector<float> & inputVolume, 
+  unsigned int sliceIndex, std::vector<float>& inputTensorValues)
+{
+  int64_t nXY = mInputDims[2] * mInputDims[3];
+  int st = (sliceIndex - 1) * nXY;
+  int en = (sliceIndex + 1) * nXY;
+  std::copy(inputVolume.begin() + st, inputVolume.begin() + en, inputTensorValues.begin());
 }
