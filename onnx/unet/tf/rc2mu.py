@@ -97,7 +97,7 @@ class SpectXnet(object):
     def test(self):
         print("\n===== testing =====")
 
-        scale = 100000
+        scale = 100_000
 
         inp_image = self.input_dcm
         out_mumap = self.outpt_dcm
@@ -107,18 +107,16 @@ class SpectXnet(object):
         model = self.load_model()
 
         print("\n--- load dicom images ...")
-        vNmFiles = [f for f in listdir(inp_image) if isfile(join(inp_image, f))]
-        vMuFiles = [f for f in listdir(out_mumap) if isfile(join(out_mumap, f))]
+        vNmFiles = [f for f in listdir(inp_image) if f.endswith(".IMA")]
 
-        for idx, (nm, mu) in enumerate(zip(vNmFiles, vMuFiles)):
+        for idx, nm in enumerate(vNmFiles):
 
             # input/output files
             iFile = os.path.join(inp_image, nm)
-            oFile = os.path.join(out_mumap, mu)
+            oFile = os.path.join(out_mumap, nm)
             
-            print('\n',idx + 1)
-            print('Input  image: ', iFile)
-            print('Output mumap: ', oFile)
+            print(f'\n{idx + 1}.')
+            print(f'{"input" :<10}{iFile:>20}')
 
             iSeries = pydicom.dcmread(iFile)
             image  = iSeries.pixel_array
@@ -129,33 +127,32 @@ class SpectXnet(object):
             i_slis = size[0]
             i_cols = size[1]
             i_rows = size[2]
-            print(f"input volume shape: {size}")
+            print(f'{"volume shape " :<10}{size}')
 
-            oSeries = pydicom.dcmread(oFile)
-            voxel   = oSeries.pixel_array
-            size    = voxel.shape
+            # infer from input DICOM
+            oSeries = iSeries
             o_slis  = size[0]
             o_cols  = size[1]
             o_rows  = size[2]
-            print(f"output volume shape: {size}")
 
-            slis = min(i_slis, o_slis)
-            print(i_slis, o_slis, slis)
+            slis = i_slis;
 
-            for s in range(0, o_slis):
-                oSeries.pixel_array[s][:]= 0
+            # for s in range(0, o_slis):
+            #     oSeries.pixel_array[s][:] = 0
+            for sl in oSeries.pixel_array:
+                sl[:] = 0
 
+            print('inference ...')
             for s in range(1, slis-1):
                 input = image[s-1:s+2,:,:]
                 input = input.reshape(1, 3, i_rows, i_cols, 1)
                 outpt = model.predict(input, batch_size = 1, verbose=0)
                 mumap = np.reshape(outpt, (3, o_cols, o_rows))
-                slice = scale*mumap[1]
+                slice = scale * mumap[1]
                 frame = slice.reshape(o_rows, o_cols)
-                oSeries.pixel_array[s][:]= frame
+                oSeries.pixel_array[s][:] = frame
 
-            print("Saving output mumap ... : ", oFile)
-            #oSeries.PixelData = oSeries.pixel_array.tostring()
+            print(f'{"output":<10}{oFile:>20}')
             oSeries.PixelData = oSeries.pixel_array.tobytes()
             oSeries.save_as(oFile)
                         

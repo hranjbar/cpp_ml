@@ -3,7 +3,7 @@ import pydicom
 import os
 
 input_dcm_dir  = '../data/ncRecon'
-#file_name = "1_BWHBI87_LH_Str_1st_[ncRecon]"
+# input_dcm_dir = '../data/nnMumap'
 filenames = [os.path.join(input_dcm_dir, fn) for fn in os.listdir(input_dcm_dir) if fn.endswith("IMA")]
 for filename in filenames:
 	ds = pydicom.dcmread(filename)

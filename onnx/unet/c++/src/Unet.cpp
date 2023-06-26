@@ -159,6 +159,8 @@ Unet::Unet(const std::string& modelFilepath) {
 #endif
 }
 
+
+/* Performs inference */
 void Unet::Inference(const std::string & inputVolumeFilename, const std::string & outputVolumeFilename, 
     const std::filesystem::path & inputVolumeDirectory, const std::filesystem::path & outputVolumeDirectory)
 {
@@ -234,6 +236,10 @@ void Unet::Inference(const std::string & inputVolumeFilename, const std::string 
 
   } // slc_ix
 
+  // scale output volume
+  float scale = 100'000;
+  std::for_each(outputVolume.begin(), outputVolume.end(), [scale](float & el){el *= scale;});
+
   // write output volume to binary file
   std::filesystem::path o_path = outputVolumeDirectory / outputVolumeFilename;
   std::ofstream os(o_path, std::ios::out | std::ios::binary);
@@ -247,78 +253,15 @@ void Unet::Inference(const std::string & inputVolumeFilename, const std::string 
 // #ifdef TIME_PROFILE
 //   const auto before = clock_time::now();
 // #endif
-  // Compute the product of all input dimension
-  // size_t inputTensorSize = vectorProduct(mInputDims);
-  // std::vector<float> inputTensorValues(inputTensorSize);
-  // Load the image into the inputTensorValues
-  // CreateTensorFromImage(imageGray, inputTensorValues);
-
-  // Assign memory for input tensor
-  // inputTensors will be used by the Session Run for inference
-  // std::vector<Ort::Value> inputTensors;
-  // Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(
-  //     OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault);
-  // inputTensors.push_back(Ort::Value::CreateTensor<float>(
-  //     memoryInfo, inputTensorValues.data(), inputTensorSize, mInputDims.data(),
-  //     mInputDims.size()));
-
-  // Create output tensor (including size and value)
-  // size_t outputTensorSize = vectorProduct(mOutputDims);
-  // std::vector<float> outputTensorValues(outputTensorSize);
-
-  // Assign memory for output tensors
-  // outputTensors will be used by the Session Run for inference
-  // std::vector<Ort::Value> outputTensors;
-  // outputTensors.push_back(Ort::Value::CreateTensor<float>(
-  //     memoryInfo, outputTensorValues.data(), outputTensorSize,
-  //     mOutputDims.data(), mOutputDims.size()));
 
 // #ifdef TIME_PROFILE
 //   const sec duration = clock_time::now() - before;
 //   std::cout << "The preprocessing takes " << duration.count() << "s"
 //             << std::endl;
 // #endif
-
-//   /**************** Inference ******************/
-// #ifdef TIME_PROFILE
-//   const auto before1 = clock_time::now();
-// #endif
-  // 1 means number of inputs and outputs
-  // InputTensors and OutputTensors, and inputNames and
-  // outputNames are used in Session Run
-  // std::unique_ptr<char, Ort::detail::AllocatedFree> itemp = mSession->GetInputNameAllocated(0, allocator);
-  // std::vector<const char*> inputNames{itemp.get()};
-  // std::unique_ptr<char, Ort::detail::AllocatedFree> otemp = mSession->GetOutputNameAllocated(0, allocator);
-  // std::vector<const char*> outputNames{otemp.get()};
-  // mSession->Run(Ort::RunOptions{nullptr}, inputNames.data(),
-  //               inputTensors.data(), 1, outputNames.data(),
-  //               outputTensors.data(), 1);
-
-// #ifdef TIME_PROFILE
-//   const sec duration1 = clock_time::now() - before1;
-//   std::cout << "The inference takes " << duration1.count() << "s" << std::endl;
-// #endif
-
-  /**************** Postprocessing the output result ******************/
-// #ifdef TIME_PROFILE
-//   const auto before2 = clock_time::now();
-// #endif
-  // Get the inference result
-  // float* floatarr = outputTensors.front().GetTensorMutableData<float>();
-  // Compute the index of the predicted class
-  // 10 means number of classes in total
-  // int cls_idx = std::max_element(floatarr, floatarr + 10) - floatarr;
-
-// #ifdef TIME_PROFILE
-//   const sec duration2 = clock_time::now() - before2;
-//   std::cout << "The postprocessing takes " << duration2.count() << "s"
-//             << std::endl;
-// #endif
-
-  // return cls_idx;
 }
 
-/* divide all elements by maximum*/
+/* divide all elements by maximum */
 void Unet::NormalizeArray(std::vector<float> & inputArray)
 {
   float const maxValue = *std::max_element(inputArray.begin(), inputArray.end());
