@@ -5,6 +5,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 #include <memory>
 #include <numeric>
 #include <limits>
@@ -70,7 +71,8 @@ class Unet {
    * @param imageFilepath: path to the image
    * @return the index of the predicted class
    */
-  void Inference(const std::string& inputVolumePath, const std::string& outputVolumePath);
+  void Inference(const std::string & inputVolumeFilename, const std::string & outputVolumeFilename, 
+    const std::filesystem::path & inputVolumeDirectory, const std::filesystem::path & outputVolumeDirectory);
 
  private:
   // ORT Environment

@@ -159,15 +159,17 @@ Unet::Unet(const std::string& modelFilepath) {
 #endif
 }
 
-void Unet::Inference(const std::string& inputVolumePath, const std::string& outputVolumePath)
+void Unet::Inference(const std::string & inputVolumeFilename, const std::string & outputVolumeFilename, 
+    const std::filesystem::path & inputVolumeDirectory, const std::filesystem::path & outputVolumeDirectory)
 {
 
   // read input volume from binary file
-  std::ifstream is(inputVolumePath, std::ios::in | std::ios::binary);
+  std::filesystem::path i_path = inputVolumeDirectory / inputVolumeFilename;
+  std::ifstream is(i_path, std::ios::in | std::ios::binary);
+  if (!is.is_open()) std::cout << "can't open: " << i_path << " for reading!\n";
   is.seekg(0, is.end);
   const size_t filesize = is.tellg();
   is.seekg(0, is.beg);
-  if (!is.is_open()) std::cout << "cant' open file " << inputVolumePath << std::endl;
   std::vector<float> inputVolume(filesize / sizeof(float));
   is.read(reinterpret_cast<char *>(inputVolume.data()), filesize);
   is.close();
@@ -228,13 +230,15 @@ void Unet::Inference(const std::string& inputVolumePath, const std::string& outp
       outputVolume.begin() + slc_ix * nXY);
     if (it != outputVolume.begin() + (slc_ix + 1) * nXY) std::perror("copy failed!\n");
 
-    std::cout << "slice: " << slc_ix + 1 << std::endl;
+    // std::cout << "slice: " << slc_ix + 1 << std::endl;
 
   } // slc_ix
 
   // write output volume to binary file
-  std::ofstream os(outputVolumePath, std::ios::out | std::ios::binary);
-  if (!os.is_open()) std::cout << "can't open file " << outputVolumePath << " for writing!\n";
+  std::filesystem::path o_path = outputVolumeDirectory / outputVolumeFilename;
+  std::ofstream os(o_path, std::ios::out | std::ios::binary);
+  if (!os.is_open()) std::cout << "can't open " << o_path << " for writing!\n";
+  else std::cout << "output mu-map: " << o_path << std::endl;
   os.write(reinterpret_cast<char *>(outputVolume.data()), filesize);
   os.close();
 
