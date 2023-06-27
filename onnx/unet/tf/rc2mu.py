@@ -97,7 +97,7 @@ class SpectXnet(object):
     def test(self):
         print("\n===== testing =====")
 
-        scale = 100_000
+        scale = float(100_000)
 
         inp_image = self.input_dcm
         out_mumap = self.outpt_dcm
@@ -128,6 +128,8 @@ class SpectXnet(object):
             i_cols = size[1]
             i_rows = size[2]
             print(f'{"volume shape " :<10}{size}')
+            with open(iFile[:-4] + ".vol", 'wb') as f:
+                image.tofile(f)
 
             # infer from input DICOM
             oSeries = iSeries
@@ -137,12 +139,12 @@ class SpectXnet(object):
 
             slis = i_slis;
 
-            # for s in range(0, o_slis):
-            #     oSeries.pixel_array[s][:] = 0
             for sl in oSeries.pixel_array:
                 sl[:] = 0
 
             print('inference ...')
+            o_volume = np.zeros(size, dtype=np.float32)
+
             for s in range(1, slis-1):
                 input = image[s-1:s+2,:,:]
                 input = input.reshape(1, 3, i_rows, i_cols, 1)
@@ -150,7 +152,11 @@ class SpectXnet(object):
                 mumap = np.reshape(outpt, (3, o_cols, o_rows))
                 slice = scale * mumap[1]
                 frame = slice.reshape(o_rows, o_cols)
+                o_volume[s][:] = frame
                 oSeries.pixel_array[s][:] = frame
+
+            with open(os.path.join(self.outpt_dcm, nm[:-4] + ".vol"), 'wb') as f:
+                o_volume.tofile(f)
 
             print(f'{"output":<10}{oFile:>20}')
             oSeries.PixelData = oSeries.pixel_array.tobytes()

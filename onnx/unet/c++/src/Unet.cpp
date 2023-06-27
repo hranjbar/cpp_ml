@@ -189,7 +189,7 @@ void Unet::Inference(const std::string & inputVolumeFilename, const std::string 
   int64_t outputTensorSize = std::accumulate(mOutputDims.begin(), mOutputDims.end(), 1, std::multiplies<int64_t>());
   std::vector<float> outputTensorValues(outputTensorSize);
 
-  NormalizeArray(inputVolume);
+  // NormalizeArray(inputVolume); // disable for now
   // slc_ix = [1 , ... , n-1], processing 3 adjacent slices at a time, moving 1 slice each iteration
   for (unsigned int slc_ix = 1; slc_ix < numSlices - 1; slc_ix++) {
     // create allocator
