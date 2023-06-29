@@ -11,17 +11,15 @@ void parseInpArgs(std::filesystem::path& model_path, const int argc, const char*
 int main(int argc, char** argv) {
 
 	// input model 
-	//std::filesystem::path model_dir("G:\\inference_models_data\\model");
 	std::filesystem::path model_path;
 	parseInpArgs(model_path, argc, (const char**)argv);
 	std::filesystem::path data_dir("G:\\inference_models_data\\data");
 	std::string model_filename = "unet.onnx";
 
-	//ML::SpectUnet unet(model_dir / model_filename);
-	ML::SpectUnet unet(model_path);
+	ml::runtime::SpectUnet unet(model_path);
 	unet.summary();
 
-	// infer
+	// predict
 	for (auto const& entry : std::filesystem::directory_iterator(data_dir)) {
 		std::filesystem::path p = entry.path();
 

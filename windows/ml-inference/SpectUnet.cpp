@@ -4,7 +4,7 @@
 #include <fstream>
 #include <numeric>
 
-ML::SpectUnet::SpectUnet(std::filesystem::path model_path)
+ml::runtime::SpectUnet::SpectUnet(std::filesystem::path model_path)
 {
 	const char* instance_name = "unet inference";
 
@@ -31,9 +31,8 @@ ML::SpectUnet::SpectUnet(std::filesystem::path model_path)
 	outputDimensions_ = outputTensorInfo.GetShape();
 }
 
-void ML::SpectUnet::summary()
+void ml::runtime::SpectUnet::summary()
 {
-	//using namespace ML;
 	std::cout << "============= Model Summary =============\n";
 	std::cout << "input name: " << inputName_ << std::endl;
 	std::cout << "output name: " << outputName_ << std::endl;
@@ -42,7 +41,7 @@ void ML::SpectUnet::summary()
 	std::cout << "=========================================\n";
 }
 
-void ML::SpectUnet::infer(const std::string& inpVolFilename, const std::string& outVolFilename,
+void ml::runtime::SpectUnet::infer(const std::string& inpVolFilename, const std::string& outVolFilename,
 	const std::filesystem::path& inpVolDir, const std::filesystem::path& outVolDir)
 {
 	// number of elements per slice
@@ -105,7 +104,7 @@ void ML::SpectUnet::infer(const std::string& inpVolFilename, const std::string& 
 			outVol.begin() + slice_idx * nXY);
 		if (it != outVol.begin() + (slice_idx + 1) * nXY) std::perror("copy failed!\n");
 
-	}	// slice_idx
+	}
 
 	// scale output volume
 	float scale = 100'000.f;
@@ -119,7 +118,7 @@ void ML::SpectUnet::infer(const std::string& inpVolFilename, const std::string& 
 	os.close();
 }
 
-void ML::SpectUnet::fillInputTensorValues(std::vector<float>& i_vol, unsigned int slice_idx, unsigned int slice_stride,
+void ml::runtime::SpectUnet::fillInputTensorValues(std::vector<float>& i_vol, unsigned int slice_idx, unsigned int slice_stride,
 	std::vector<float>& i_tsor_vals)
 {
 	int64_t nXY = inputDimensions_[2] * inputDimensions_[3];

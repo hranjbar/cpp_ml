@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------*/
-/*        Copyright (c) Siemens Medical Solutions USA, Inc.			        */
+/*        Copyright (c) Siemens Medical Solutions USA, Inc.			         */
 /*                            All Rights Reserved                            */
 /*---------------------------------------------------------------------------*/
 /*
@@ -11,7 +11,7 @@
 #include <iostream>
 #include <vector>
 
-namespace ML
+namespace ml
 {
 	std::ostream& operator<<(std::ostream& os, const std::vector<int64_t>& v);
 }
