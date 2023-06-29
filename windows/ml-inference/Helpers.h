@@ -13,12 +13,12 @@
 
 namespace ml
 {
-		template<typename T>
-		std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) 
-		{
-			os << "[";
-			for (int i = 0; i < v.size() - 1; ++i) os << v[i] << ", ";
-			os << v.back() << "]";
-			return os;
-		}
+	template<typename T>
+	std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
+	{
+		os << "[";
+		for (int i = 0; i < v.size() - 1; ++i) os << v[i] << ", ";
+		os << v.back() << "]";
+		return os;
+	}
 }
