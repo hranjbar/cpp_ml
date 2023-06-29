@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
 		std::cout << e.what() << std::endl;
 	}
 
-	ml::runtime::SpectUnet unet(model_path);
+	ml::inference::SpectUnet unet(model_path);
 	unet.summary();
 
 	// predict
@@ -49,11 +49,11 @@ int main(int argc, char** argv) {
 void parseInpArgs(std::filesystem::path& model_path, std::filesystem::path& input_data_dir, const int argc, const char** argv)
 {
 	std::string message;
-	std::string model_path_arg{ "-m" }, input_data_path_arg{ "-i" };
+	std::string model_path_arg{ "-m" }, input_data_dir_arg{ "-i" };
 
-	if (argc != 5 || !((argv[1] == model_path_arg && argv[3] == input_data_path_arg) || (argv[3] == model_path_arg && argv[1] == input_data_path_arg))) {
+	if (argc != 5 || !((argv[1] == model_path_arg && argv[3] == input_data_dir_arg) || (argv[3] == model_path_arg && argv[1] == input_data_dir_arg))) {
 		message = "incorrect input arguments!";
-		message += "\ninput arguments must be:\n\t-m \"path_to_model\" -i \"directory_of_input_data\"";
+		message += "\ninput arguments must be:\n\t" + model_path_arg + " \"path_to_model\" " + input_data_dir_arg + " \"directory_of_input_data\"";
 		throw std::exception(message.c_str());
 	}
 
@@ -67,7 +67,7 @@ void parseInpArgs(std::filesystem::path& model_path, std::filesystem::path& inpu
 				throw std::exception(message.c_str());
 			}
 		}
-		else if (std::string(argv[i]) == input_data_path_arg) {
+		else if (std::string(argv[i]) == input_data_dir_arg) {
 			input_data_dir = argv[i + 1];
 			if (!std::filesystem::exists(input_data_dir)) {
 				message = "input data path";

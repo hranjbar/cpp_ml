@@ -16,7 +16,7 @@
 
 namespace ml
 {
-	namespace runtime
+	namespace inference
 	{
 		class SpectUnet
 		{
