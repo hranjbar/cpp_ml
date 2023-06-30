@@ -31,7 +31,7 @@ namespace ml
 			std::vector<int64_t> inputDimensions_, outputDimensions_;
 
 			Ort::Env env_;
-			Ort::Session* session_;
+			std::unique_ptr<Ort::Session> session_;
 			Ort::AllocatorWithDefaultOptions allocator_;
 			Ort::RunOptions runOptions_;
 

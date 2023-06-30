@@ -12,7 +12,7 @@ ml::inference::SpectUnet::SpectUnet(std::filesystem::path model_path)
 	runOptions_ = Ort::RunOptions{ nullptr };
 
 	std::cout << "loading model " << model_path << std::endl;
-	session_ = new Ort::Session(env_, model_path.c_str(), Ort::SessionOptions{ nullptr });
+	session_ = std::make_unique<Ort::Session>(Ort::Session(env_, model_path.c_str(), Ort::SessionOptions{ nullptr }));
 
 	std::unique_ptr<char, Ort::detail::AllocatedFree> temp = session_->GetInputNameAllocated(0, allocator_);
 	inputName_ = std::string(temp.get());
