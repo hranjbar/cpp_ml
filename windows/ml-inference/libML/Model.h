@@ -3,22 +3,26 @@
 /*                            All Rights Reserved                            */
 /*---------------------------------------------------------------------------*/
 /*
+	note:		Abstract class for machine learning (ML) models
 	author:		Homayoon Ranjbar (homayoon.ranjbar@siemens-healthineers.com)
-	date:		June 2023
+	date:		July 2023
 */
 
 #pragma once
-#include <iostream>
+
+#include <string>
 #include <vector>
 
 namespace ml
 {
-	template<typename T>
-	std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
+	class Model
 	{
-		os << "[";
-		for (int i = 0; i < v.size() - 1; ++i) os << v[i] << ", ";
-		os << v.back() << "]";
-		return os;
-	}
+	public:
+		virtual void summary() = 0;
+
+	protected:
+		std::string inputName_, outputName_;
+		std::vector<int64_t> inputDimensions_, outputDimensions_;
+	};
 }
+

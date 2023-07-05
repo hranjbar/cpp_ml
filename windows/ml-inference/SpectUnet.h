@@ -9,16 +9,16 @@
 
 #pragma once
 
-#include <iostream>
 #include <filesystem>
 
 #include "onnxruntime_cxx_api.h"
+#include "Model.h"
 
 namespace ml
 {
 	namespace inference
 	{
-		class SpectUnet
+		class SpectUnet : public Model
 		{
 		public:
 			SpectUnet(std::filesystem::path model_path);
@@ -27,9 +27,7 @@ namespace ml
 				const std::filesystem::path& inpVolDir, const std::filesystem::path& outVolDir);
 
 		private:
-			std::string inputName_, outputName_, instanceName_;
-			std::vector<int64_t> inputDimensions_, outputDimensions_;
-
+			std::string instanceName_;
 			Ort::Env env_;
 			std::unique_ptr<Ort::Session> session_;
 			Ort::AllocatorWithDefaultOptions allocator_;

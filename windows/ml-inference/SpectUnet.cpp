@@ -34,9 +34,9 @@ ml::inference::SpectUnet::SpectUnet(std::filesystem::path model_path)
 void ml::inference::SpectUnet::summary()
 {
 	std::cout << "============= Model Summary =============\n";
-	std::cout << "input name: " << inputName_ << std::endl;
+	std::cout << "input  name: " << inputName_ << std::endl;
 	std::cout << "output name: " << outputName_ << std::endl;
-	std::cout << "input dimensions: " << inputDimensions_ << std::endl;
+	std::cout << "input  dimensions: " << inputDimensions_ << std::endl;
 	std::cout << "output dimensions: " << outputDimensions_ << std::endl;
 	std::cout << "=========================================\n";
 }
