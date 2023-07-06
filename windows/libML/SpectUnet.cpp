@@ -1,6 +1,7 @@
 #include "SpectUnet.h"
 #include "Helpers.h"
 
+#include <iostream>
 #include <fstream>
 #include <numeric>
 

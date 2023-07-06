@@ -9,16 +9,17 @@
 
 #pragma once
 
-#include <filesystem>
-
-#include "onnxruntime_cxx_api.h"
 #include "Model.h"
+#include "onnxruntime_cxx_api.h"
+
+#include <filesystem>
 
 namespace ml
 {
 	namespace inference
 	{
-		class SpectUnet : public Model
+		class SpectUnet :
+			public Model
 		{
 		public:
 			SpectUnet(std::filesystem::path model_path);
@@ -38,3 +39,4 @@ namespace ml
 		};
 	}
 }
+

@@ -8,7 +8,8 @@
 
 void parseInpArgs(std::filesystem::path& model_path, std::filesystem::path& input_data_dir, const int argc, const char** argv);
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
 
 	// parsing inputs
 	std::filesystem::path model_path, input_data_dir;

@@ -15,39 +15,29 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.h">
+    <ClInclude Include="Helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Helpers.h">
+    <ClInclude Include="SpectUnet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="libML.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
+    <ClCompile Include="Helpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Helpers.cpp">
+    <ClCompile Include="SpectUnet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="libML.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
+    <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\onnxruntime.dll" />
+    <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\onnxruntime_providers_shared.dll" />
   </ItemGroup>
 </Project>
