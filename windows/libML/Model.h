@@ -15,14 +15,17 @@
 
 namespace ml
 {
-	class Model
+	namespace models
 	{
-	public:
-		virtual void summary() = 0;
+		class Model
+		{
+		public:
+			virtual void summary() = 0;
 
-	protected:
-		std::string inputName_, outputName_;
-		std::vector<int64_t> inputDimensions_, outputDimensions_;
-	};
+		protected:
+			std::string inputName_, outputName_;
+			std::vector<int64_t> inputDimensions_, outputDimensions_;
+		};
+	}
 }
 

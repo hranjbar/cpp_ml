@@ -16,27 +16,30 @@
 
 namespace ml
 {
-	namespace inference
+	namespace models
 	{
-		class SpectUnet :
-			public Model
+		namespace inference
 		{
-		public:
-			SpectUnet(std::filesystem::path model_path);
-			void summary();
-			void infer(const std::string& inpVolFilename, const std::string& outVolFilename,
-				const std::filesystem::path& inpVolDir, const std::filesystem::path& outVolDir);
+			class SpectUnet :
+				public Model
+			{
+			public:
+				SpectUnet(std::filesystem::path model_path);
+				void summary();
+				void infer(const std::string& inpVolFilename, const std::string& outVolFilename,
+					const std::filesystem::path& inpVolDir, const std::filesystem::path& outVolDir);
 
-		private:
-			std::string instanceName_;
-			Ort::Env env_;
-			std::unique_ptr<Ort::Session> session_;
-			Ort::AllocatorWithDefaultOptions allocator_;
-			Ort::RunOptions runOptions_;
+			private:
+				std::string instanceName_;
+				Ort::Env env_;
+				std::unique_ptr<Ort::Session> session_;
+				Ort::AllocatorWithDefaultOptions allocator_;
+				Ort::RunOptions runOptions_;
 
-			void fillInputTensorValues(std::vector<float>& i_vol, unsigned int slice_idx, unsigned int slice_stride,
-				std::vector<float>& i_tsor_vals);
-		};
+				void fillInputTensorValues(std::vector<float>& i_vol, unsigned int slice_idx, unsigned int slice_stride,
+					std::vector<float>& i_tsor_vals);
+			};
+		}
 	}
 }
 

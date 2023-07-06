@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 		std::cout << e.what() << std::endl;
 	}
 
-	ml::inference::SpectUnet unet(model_path);
+	ml::models::inference::SpectUnet unet(model_path);
 	unet.summary();
 
 	// predict

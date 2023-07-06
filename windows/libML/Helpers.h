@@ -22,5 +22,14 @@ namespace ml
 		os << v.back() << "]";
 		return os;
 	}
+
+	namespace models
+	{
+		enum ModelType
+		{
+			NA = 0,
+			CNN
+		};
+	}
 }
 

@@ -5,7 +5,7 @@
 #include <fstream>
 #include <numeric>
 
-ml::inference::SpectUnet::SpectUnet(std::filesystem::path model_path)
+ml::models::inference::SpectUnet::SpectUnet(std::filesystem::path model_path)
 {
 	const char* instance_name = "unet inference";
 
@@ -32,7 +32,7 @@ ml::inference::SpectUnet::SpectUnet(std::filesystem::path model_path)
 	outputDimensions_ = outputTensorInfo.GetShape();
 }
 
-void ml::inference::SpectUnet::summary()
+void ml::models::inference::SpectUnet::summary()
 {
 	std::cout << "============= Model Summary =============\n";
 	std::cout << "input  name: " << inputName_ << std::endl;
@@ -42,7 +42,7 @@ void ml::inference::SpectUnet::summary()
 	std::cout << "=========================================\n";
 }
 
-void ml::inference::SpectUnet::infer(const std::string& inpVolFilename, const std::string& outVolFilename,
+void ml::models::inference::SpectUnet::infer(const std::string& inpVolFilename, const std::string& outVolFilename,
 	const std::filesystem::path& inpVolDir, const std::filesystem::path& outVolDir)
 {
 	// number of elements per slice
@@ -119,7 +119,7 @@ void ml::inference::SpectUnet::infer(const std::string& inpVolFilename, const st
 	os.close();
 }
 
-void ml::inference::SpectUnet::fillInputTensorValues(std::vector<float>& i_vol, unsigned int slice_idx, unsigned int slice_stride,
+void ml::models::inference::SpectUnet::fillInputTensorValues(std::vector<float>& i_vol, unsigned int slice_idx, unsigned int slice_stride,
 	std::vector<float>& i_tsor_vals)
 {
 	int64_t nXY = inputDimensions_[2] * inputDimensions_[3];
