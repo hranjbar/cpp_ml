@@ -23,6 +23,15 @@ namespace ml
 		return os;
 	}
 
+	template <typename T, int D>
+	std::ostream& operator << (std::ostream& os, const std::array<T, D>& a)
+	{
+		os << "[";
+		for (int i = 0; i < a.size() - 1; ++i) os << a[i] << " ";
+		os << a.back() << "]";
+		return os;
+	}
+
 	namespace models
 	{
 		enum ModelType

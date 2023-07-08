@@ -1,4 +1,6 @@
 #include "Tensor.h"
+#include "Helpers.h"
+#include <array>
 
 int main()
 {
@@ -34,13 +36,17 @@ int main()
 	};*/
 	//ml::Tensor<float, 3> t3({ 3, 2, 4 });
 	std::cout << t3 << std::endl;
-	std::cout << t3.bytes() << " bytes" << std::endl;
+	//std::array<std::size_t, 3> dims = { 3, 0, 40000 };
+	using namespace ml;
+	std::cout << "dimensions: " << t3.dims() << std::endl;
+	//std::cout << t3.bytes() << " bytes" << std::endl;
 	////std::cout << "1: " << t3[1] << std::endl;
 	t3.writeBin(fname);
 	ml::Tensor<float, 3> t4({ 3, 2, 5 });
 	//ml::Tensor<short, 3> t4({ 3, 2, 5 });
 	t4.readBin(fname);
 	std::cout << t4 << std::endl;
+	std::cout << "dimensions: " << t4.dims() << std::endl;
 
 	
 	return 0;

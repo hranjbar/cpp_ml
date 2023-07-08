@@ -23,12 +23,15 @@ namespace ml
 	{
 	public:
 		Tensor<T, D>() = default;
-		Tensor<T, D>(std::vector<int> tsor_dims)
+		Tensor<T, D>(const std::array<int, D>& tsor_dims)
 		{
 			assert(D == tsor_dims.size());
+			dimensions_ = tsor_dims;
 			data_ = std::vector<Tensor<T, D - 1>>(tsor_dims.back());	// last-order
+			std::array<int, D - 1> subDims;
+			std::copy(tsor_dims.begin(), tsor_dims.end() - 1, subDims.begin());
 			for (auto& sub : data_) {
-				sub = Tensor<T, D - 1>(std::vector<int>(tsor_dims.begin(), tsor_dims.end() - 1));
+				sub = Tensor<T, D - 1>(subDims);
 			}
 		}
 		Tensor<T, D>(const std::initializer_list<Tensor<T, D - 1>>& il)
@@ -42,6 +45,7 @@ namespace ml
 		}
 
 		Tensor<T, D - 1>& operator [] (int ix) { return data_[ix]; }
+		const auto& dims() { return dimensions_; }
 
 		int bytes() { return data_.size() * data_.front().bytes(); }
 		void writeBin(std::ofstream& os) { for (auto& sub : data_) sub.writeBin(os); }
@@ -73,6 +77,7 @@ namespace ml
 		}
 
 	private:
+		std::array<int, D> dimensions_;
 		std::vector<Tensor<T, D - 1>> data_;
 	};
 
@@ -82,7 +87,7 @@ namespace ml
 	public:
 		Tensor<T, 1>() = default;
 		Tensor<T, 1>(const int& array_size) { data_ = std::vector<T>(array_size); }
-		Tensor<T, 1>(const std::vector<int>& tsor_dims) { data_ = std::vector<T>(tsor_dims.front()); }
+		Tensor<T, 1>(const std::array<int, 1>& tsor_dims) { data_ = std::vector<T>(tsor_dims[0]); }
 		Tensor<T, 1>(std::initializer_list<T>&& il) { data_ = std::vector<T>(il); }
 
 		T& operator [] (int ix) { return data_[ix]; }
