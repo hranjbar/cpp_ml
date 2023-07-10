@@ -53,7 +53,6 @@ namespace ml
 		{
 			std::ofstream os(outputPath, std::ios::out | std::ios::binary);
 			if (!os.is_open()) std::cout << "cannot open " << outputPath << std::endl;
-			std::cout << "writing " << bytes() << " bytes\n";
 			for (auto& sub : data_) sub.writeBin(os);
 			os.close();
 		}
@@ -62,7 +61,10 @@ namespace ml
 		{
 			std::ifstream is(inputPath, std::ios::in | std::ios::binary);
 			if (!is.is_open()) std::cout << "cannot open " << inputPath << std::endl;
-			std::cout << "reading " << bytes() << " bytes\n";
+			is.seekg(0, is.end);
+			const std::size_t filesize = is.tellg();
+			is.seekg(0, is.beg);
+			assert(filesize == bytes());
 			for (auto& sub : data_) sub.readBin(is);
 			is.close();
 		}
@@ -106,6 +108,10 @@ namespace ml
 		{
 			std::ifstream is(inputPath, std::ios::in | std::ios::binary);
 			if (!is.is_open()) std::cout << "cannot open " << inputPath << std::endl;
+			is.seekg(0, is.end);
+			const std::size_t filesize = is.tellg();
+			is.seekg(0, is.beg);
+			assert(filesize == bytes());
 			readBin(is);
 			is.close();
 		}
