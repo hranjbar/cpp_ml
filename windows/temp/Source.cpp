@@ -1,6 +1,7 @@
 #include "Tensor.h"
 #include "Helpers.h"
 #include <array>
+#include <ranges>
 
 int main()
 {
@@ -34,20 +35,47 @@ int main()
 		{{0, 0, -1}, {-0 ,-6, 9}},
 		{{2, -2, -1}, {2 ,0, -4}}
 	};*/
+	std::cout << "length: " << t3.length() << std::endl;
 	//ml::Tensor<float, 3> t3({ 3, 2, 4 });
 	std::cout << t3 << std::endl;
 	//std::array<std::size_t, 3> dims = { 3, 0, 40000 };
+	t3 *= 2.0f;
+	std::cout << t3 << std::endl;
+	
 	using namespace ml;
-	std::cout << "dimensions: " << t3.dims() << std::endl;
+	//std::cout << "dimensions: " << t3.dims() << std::endl;
 	//std::cout << t3.bytes() << " bytes" << std::endl;
 	////std::cout << "1: " << t3[1] << std::endl;
-	t3.writeBin(fname);
-	ml::Tensor<float, 3> t4({ 3, 2, 5 });
+	//t3.writeBin(fname);
+	//ml::Tensor<float, 3> t4({ 3, 2, 5 });
 	//ml::Tensor<short, 3> t4({ 3, 2, 5 });
-	t4.readBin(fname);
-	std::cout << t4 << std::endl;
-	std::cout << "dimensions: " << t4.dims() << std::endl;
+	//t4.readBin(fname);
+	//std::cout << t4 << std::endl;
+	//std::cout << "dimensions: " << t4.dims() << std::endl;
+	//std::vector<short> v(t3.length());
+	/*std::vector<short> v = {
+		3, 2, -0, -2 ,-0, -6,
+		0, 0, -1, -0 ,-6, 9,
+		3, 2, -0, -2 ,-0, -6,
+		0, 0, -1, -0 ,-6, 9,
+		2, -2, -1, 2 ,0, -4
+	};*/
+	//auto it = v.begin();
+	//t3.copyTo(it);
+	//t3.copyTo(v.begin());
+	//std::cout << v << std::endl;
+	//t4.copyFrom(it);
+	//std::cout << t4 << std::endl;
 
+	/*ml::Tensor<float, 1> t = { 0.43f, -9.5f, 0.28f, 5.67f };
+	std::cout << t << std::endl;
+	t *= 2.f;
+	std::cout << t << std::endl;*/
+
+	/*std::vector<float> v(4);
+	t.copyTo(v);
+	std::cout << v << std::endl;
+	std::cout << "length: " << t.length() << std::endl;*/
 	
 	return 0;
 }

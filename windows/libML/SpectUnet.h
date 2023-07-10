@@ -11,6 +11,7 @@
 
 #include "Model.h"
 #include "onnxruntime_cxx_api.h"
+#include "Tensor.h"
 
 #include <filesystem>
 
@@ -36,7 +37,7 @@ namespace ml
 				Ort::AllocatorWithDefaultOptions allocator_;
 				Ort::RunOptions runOptions_;
 
-				void fillInputTensorValues(std::vector<float>& i_vol, unsigned int slice_idx, unsigned int slice_stride,
+				void fillInputTensorValues(ml::Tensor<float, 3>& i_vol, unsigned int slice_idx, unsigned int slice_stride,
 					std::vector<float>& i_tsor_vals);
 			};
 		}

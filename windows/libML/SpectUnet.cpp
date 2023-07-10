@@ -1,5 +1,6 @@
 #include "SpectUnet.h"
 #include "Helpers.h"
+#include "Tensor.h"
 
 #include <iostream>
 #include <fstream>
@@ -48,21 +49,24 @@ void ml::models::inference::SpectUnet::infer(const std::string& inpVolFilename, 
 	// number of elements per slice
 	int64_t nXY = inputDimensions_[2] * inputDimensions_[3];
 
-	// read input volume from binary file
+	// infer file size to calculate number of slices
 	std::filesystem::path i_path = inpVolDir / inpVolFilename;
 	std::ifstream is(i_path, std::ios::in | std::ios::binary);
 	if (!is.is_open()) std::cout << "can't open " << i_path << std::endl;
 	is.seekg(0, is.end);
 	const size_t file_size = is.tellg();
 	is.seekg(0, is.beg);
-	std::vector<float> inpVol(file_size / sizeof(float));
-	is.read(reinterpret_cast<char*>(inpVol.data()), file_size);
 	is.close();
+	std::size_t num_slices = file_size / (nXY * sizeof(float));
+
+	// read input volume from binary file
+	ml::Tensor<float, 3> inpVol({ static_cast<std::size_t>(inputDimensions_[2]),
+		static_cast<std::size_t>(inputDimensions_[3]),
+		num_slices });
+	inpVol.readBin(i_path);
 
 	// create output volume
-	std::vector<float> outVol(inpVol.size());
-
-	const unsigned int num_slices = inpVol.size() / nXY;
+	ml::Tensor<float, 3> outVol(inpVol.dims());
 
 	// input/output tensor values 
 	int64_t inpTsorSz = std::accumulate(inputDimensions_.begin(), inputDimensions_.end(), 1, std::multiplies<int64_t>());
@@ -72,8 +76,8 @@ void ml::models::inference::SpectUnet::infer(const std::string& inpVolFilename, 
 
 	// process (2 x slice_stride + 1) at a time
 	unsigned int slice_stride = 1;
+	std::vector<float>::iterator it;
 	for (unsigned int slice_idx = 1; slice_idx < num_slices - 1; ++slice_idx) {
-
 		// fill in input tensor values
 		fillInputTensorValues(inpVol, slice_idx, slice_stride, inpTsorVals);
 
@@ -101,30 +105,25 @@ void ml::models::inference::SpectUnet::infer(const std::string& inpVolFilename, 
 		}
 
 		// copy middle slice of output tensor into corresponding slice of output volume
-		auto it = std::copy(outTsorVals.begin() + nXY, outTsorVals.begin() + nXY + nXY,
-			outVol.begin() + slice_idx * nXY);
-		if (it != outVol.begin() + (slice_idx + 1) * nXY) std::perror("copy failed!\n");
-
+		it = outTsorVals.begin() + nXY;
+		outVol[slice_idx].copyFrom(it);
 	}
 
 	// scale output volume
 	float scale = 100'000.f;
-	std::for_each(outVol.begin(), outVol.end(), [scale](float& el) {el *= scale; });
+	outVol *= scale;
 
 	// write output volume to binary file
 	std::filesystem::path o_path = outVolDir / outVolFilename;
-	std::ofstream os(o_path, std::ios::out | std::ios::binary);
-	if (!os.is_open()) std::cout << "can't open " << o_path << std::endl;
-	os.write(reinterpret_cast<char*>(outVol.data()), file_size);
-	os.close();
+	outVol.writeBin(o_path);
 }
 
-void ml::models::inference::SpectUnet::fillInputTensorValues(std::vector<float>& i_vol, unsigned int slice_idx, unsigned int slice_stride,
-	std::vector<float>& i_tsor_vals)
+void ml::models::inference::SpectUnet::fillInputTensorValues(ml::Tensor<float, 3>& i_vol, unsigned int slice_idx, unsigned int slice_stride, std::vector<float>& i_tsor_vals)
 {
 	int64_t nXY = inputDimensions_[2] * inputDimensions_[3];
-	// copy (2 x slice_stride + 1) slices centered at slice_idx to input tensor values
-	std::copy(i_vol.begin() + (slice_idx - 1) * nXY,
-		i_vol.begin() + (slice_idx + 1) * nXY,
-		i_tsor_vals.begin());
+	std::vector<float>::iterator it;
+	for (unsigned int ix = slice_idx - slice_stride; ix <= slice_idx + slice_stride; ++ix) {
+		it = i_tsor_vals.begin() + nXY * (ix - slice_idx + slice_stride);
+		i_vol[ix].copyTo(it);
+	}
 }

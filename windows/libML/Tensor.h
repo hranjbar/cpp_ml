@@ -15,6 +15,8 @@
 #include <cassert>
 #include <filesystem>
 #include <fstream>
+#include <ranges>
+#include <iterator>
 
 namespace ml
 {
@@ -29,19 +31,23 @@ namespace ml
 			dimensions_ = tsor_dims;
 			data_ = std::vector<Tensor<T, D - 1>>(tsor_dims.back());	// last-order
 			std::array<std::size_t, D - 1> subDims;
-			std::copy(tsor_dims.begin(), tsor_dims.end() - 1, subDims.begin());
+			std::ranges::copy_n(tsor_dims.begin(), D - 1, subDims.begin());
 			for (auto& sub : data_) sub = Tensor<T, D - 1>(subDims);
 		}
 		Tensor<T, D>(const std::initializer_list<Tensor<T, D - 1>>& il)
 		{
 			data_ = std::vector<Tensor<T, D - 1>>(il.size());
-			for (int i = 0; const auto& el : il) data_[i++] = el;
+			for (int i = 0; const auto & el : il) data_[i++] = el;
 		}
 
 		Tensor<T, D - 1>& operator [] (int ix) { return data_[ix]; }
+		void operator *= (T p) { for (auto& sub : data_) sub *= p; }
 		const auto& dims() { return dimensions_; }
+		std::size_t bytes() { return data_.size() * data_.front().bytes(); }
+		std::size_t length() { return data_.size() * data_.front().length(); }
+		void copyTo(std::vector<T>::iterator& to) { for (auto& sub : data_) sub.copyTo(to); }
+		void copyFrom(std::vector<T>::iterator& from) { for (auto& sub : data_) sub.copyFrom(from); }
 
-		int bytes() { return data_.size() * data_.front().bytes(); }
 		void writeBin(std::ofstream& os) { for (auto& sub : data_) sub.writeBin(os); }
 		void writeBin(std::filesystem::path& outputPath)
 		{
@@ -87,8 +93,19 @@ namespace ml
 		Tensor<T, 1>(std::initializer_list<T>&& il) { data_ = std::vector<T>(il); }
 
 		T& operator [] (int ix) { return data_[ix]; }
+		void operator *= (T p) { std::ranges::for_each(data_, [&p](auto& el) {el *= p; }); }
+		std::size_t bytes() { return data_.size() * sizeof T; }
+		std::size_t length() { return data_.size(); }
+		void copyTo(std::vector<T>::iterator& to) {
+			std::ranges::copy(data_, to);
+			to = std::ranges::next(to, length());
+		}
+		void copyFrom(std::vector<T>::iterator& from)
+		{
+			std::ranges::copy(from, from + length(), data_.begin());
+			from = std::ranges::next(from, length());
+		}
 
-		int bytes() { return data_.size() * sizeof T; }
 		void writeBin(std::ofstream& os) { os.write(reinterpret_cast<char*>(data_.data()), bytes()); }
 		void writeBin(std::filesystem::path& outputPath)
 		{
@@ -123,4 +140,3 @@ namespace ml
 		std::vector<T> data_;
 	};
 }
-
