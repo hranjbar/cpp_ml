@@ -24,7 +24,7 @@ namespace ml
 
 		protected:
 			std::string inputName_, outputName_;
-			std::vector<int64_t> inputDimensions_, outputDimensions_;
+			std::vector<std::size_t> inputDimensions_, outputDimensions_;
 		};
 	}
 }

@@ -18,30 +18,24 @@
 
 namespace ml
 {
-	template<typename T, int D>
+	template<typename T, std::size_t D>
 	class Tensor
 	{
 	public:
 		Tensor<T, D>() = default;
-		Tensor<T, D>(const std::array<int, D>& tsor_dims)
+		Tensor<T, D>(const std::array<std::size_t, D>& tsor_dims)
 		{
 			assert(D == tsor_dims.size());
 			dimensions_ = tsor_dims;
 			data_ = std::vector<Tensor<T, D - 1>>(tsor_dims.back());	// last-order
-			std::array<int, D - 1> subDims;
+			std::array<std::size_t, D - 1> subDims;
 			std::copy(tsor_dims.begin(), tsor_dims.end() - 1, subDims.begin());
-			for (auto& sub : data_) {
-				sub = Tensor<T, D - 1>(subDims);
-			}
+			for (auto& sub : data_) sub = Tensor<T, D - 1>(subDims);
 		}
 		Tensor<T, D>(const std::initializer_list<Tensor<T, D - 1>>& il)
 		{
 			data_ = std::vector<Tensor<T, D - 1>>(il.size());
-			int i = 0;
-			for (const auto& el : il) {
-				data_[i] = el;
-				i++;
-			}
+			for (int i = 0; const auto & el : il) data_[i++] = el;
 		}
 
 		Tensor<T, D - 1>& operator [] (int ix) { return data_[ix]; }
@@ -53,7 +47,6 @@ namespace ml
 		{
 			std::ofstream os(outputPath, std::ios::out | std::ios::binary);
 			if (!os.is_open()) std::cout << "cannot open " << outputPath << std::endl;
-			std::cout << "writing " << bytes() << " bytes\n";
 			for (auto& sub : data_) sub.writeBin(os);
 			os.close();
 		}
@@ -62,7 +55,6 @@ namespace ml
 		{
 			std::ifstream is(inputPath, std::ios::in | std::ios::binary);
 			if (!is.is_open()) std::cout << "cannot open " << inputPath << std::endl;
-			std::cout << "reading " << bytes() << " bytes\n";
 			for (auto& sub : data_) sub.readBin(is);
 			is.close();
 		}
@@ -77,7 +69,7 @@ namespace ml
 		}
 
 	private:
-		std::array<int, D> dimensions_;
+		std::array<std::size_t, D> dimensions_;
 		std::vector<Tensor<T, D - 1>> data_;
 	};
 
@@ -87,7 +79,7 @@ namespace ml
 	public:
 		Tensor<T, 1>() = default;
 		Tensor<T, 1>(const int& array_size) { data_ = std::vector<T>(array_size); }
-		Tensor<T, 1>(const std::array<int, 1>& tsor_dims) { data_ = std::vector<T>(tsor_dims[0]); }
+		Tensor<T, 1>(const std::array<std::size_t, 1>& tsor_dims) { data_ = std::vector<T>(tsor_dims[0]); }
 		Tensor<T, 1>(std::initializer_list<T>&& il) { data_ = std::vector<T>(il); }
 
 		T& operator [] (int ix) { return data_[ix]; }
